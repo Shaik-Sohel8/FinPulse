@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route, HashRouter } from "react-router-dom";
 import "./App.css";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -9,7 +9,7 @@ import AuditorDashboard from "./pages/AuditorDashboard";
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -18,7 +18,7 @@ function App() {
         <Route path="/manager-dashboard" element={<ManagerDashboard />} />
         <Route path="/auditor-dashboard" element={<AuditorDashboard />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
