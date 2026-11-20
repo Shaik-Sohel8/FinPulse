@@ -32,8 +32,9 @@ function ManagerDashboard() {
     return session && session.role === "manager" ? session : null;
   });
 
-  const [requests, setRequests] = useState(() => getRequests());
-  const [expenses, setExpenses] = useState(() => getExpenses());
+  const [requests, setRequests] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [allocations, setAllocations] = useState(DEFAULT_ALLOCATIONS);
   const [historyFilter, setHistoryFilter] = useState("all");
 
@@ -43,11 +44,41 @@ function ManagerDashboard() {
   const [rejectReason, setRejectReason] = useState("");
   const [rejectError, setRejectError] = useState("");
 
+  // Load latest bills & registration requests from JSONBin
   useEffect(() => {
     if (!user) {
       navigate("/login", { replace: true });
+      return;
     }
+
+    let ignore = false;
+    Promise.all([getRequests(), getExpenses()])
+      .then(([reqs, exps]) => {
+        if (!ignore) {
+          setRequests(reqs);
+          setExpenses(exps);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!ignore) setLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
   }, [user, navigate]);
+
+  async function handleRefresh() {
+    setLoading(true);
+    try {
+      const [reqs, exps] = await Promise.all([getRequests(), getExpenses()]);
+      setRequests(reqs);
+      setExpenses(exps);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   function handleLogout() {
     clearSession();
@@ -55,24 +86,27 @@ function ManagerDashboard() {
   }
 
   // --- USER REGISTRATION ACTIONS ---
-  function handleApproveUser(request) {
-    const users = getUsers();
-    saveUsers([...users, request]);
+  async function handleApproveUser(request) {
+    const users = await getUsers();
+    await saveUsers([...users, request]);
 
-    const updatedRequests = requests.filter((r) => r.id !== request.id);
-    saveRequests(updatedRequests);
+    const latestRequests = await getRequests();
+    const updatedRequests = latestRequests.filter((r) => r.id !== request.id);
+    await saveRequests(updatedRequests);
     setRequests(updatedRequests);
   }
 
-  function handleRejectUser(requestId) {
-    const updatedRequests = requests.filter((r) => r.id !== requestId);
-    saveRequests(updatedRequests);
+  async function handleRejectUser(requestId) {
+    const latestRequests = await getRequests();
+    const updatedRequests = latestRequests.filter((r) => r.id !== requestId);
+    await saveRequests(updatedRequests);
     setRequests(updatedRequests);
   }
 
   // --- EXPENSE BILL ACTIONS ---
-  function handleApproveBill(billId) {
-    const updated = expenses.map((bill) =>
+  async function handleApproveBill(billId) {
+    const latestExpenses = await getExpenses();
+    const updated = latestExpenses.map((bill) =>
       bill.id === billId
         ? {
             ...bill,
@@ -83,7 +117,7 @@ function ManagerDashboard() {
           }
         : bill
     );
-    saveExpenses(updated);
+    await saveExpenses(updated);
     setExpenses(updated);
   }
 
@@ -93,14 +127,15 @@ function ManagerDashboard() {
     setRejectError("");
   }
 
-  function handleConfirmReject(e) {
+  async function handleConfirmReject(e) {
     e.preventDefault();
     if (!rejectReason.trim()) {
       setRejectError("Please write a reason before rejecting.");
       return;
     }
 
-    const updated = expenses.map((bill) =>
+    const latestExpenses = await getExpenses();
+    const updated = latestExpenses.map((bill) =>
       bill.id === rejectBill.id
         ? {
             ...bill,
@@ -112,7 +147,7 @@ function ManagerDashboard() {
         : bill
     );
 
-    saveExpenses(updated);
+    await saveExpenses(updated);
     setExpenses(updated);
     setRejectBill(null);
     setRejectReason("");
@@ -154,9 +189,14 @@ function ManagerDashboard() {
     <div>
       <header className="header">
         <div className="brand">FinPulse</div>
-        <button className="btn btn-secondary" onClick={handleLogout}>
-          Logout
-        </button>
+        <div className="btn-group">
+          <button className="btn btn-secondary" onClick={handleRefresh}>
+            {loading ? "Syncing..." : "Refresh"}
+          </button>
+          <button className="btn btn-secondary" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
       </header>
 
       <main className="mgr-container">
@@ -165,7 +205,6 @@ function ManagerDashboard() {
           <p>@{user.username} • Manager Dashboard</p>
         </div>
 
-        {/* Company Budget Summary Cards */}
         <div className="mgr-stats-grid">
           <div className="mgr-stat-card">
             <div className="mgr-stat-label">Company Limit for Employees</div>
@@ -189,7 +228,6 @@ function ManagerDashboard() {
           </div>
         </div>
 
-        {/* Row 2: Pending Bills + Registered User Requests */}
         <div className="mgr-two-col">
           <section className="mgr-panel">
             <div className="mgr-panel-header">
@@ -201,7 +239,11 @@ function ManagerDashboard() {
               </div>
             </div>
 
-            {pendingBills.length === 0 ? (
+            {loading ? (
+              <p style={{ color: "#94a3b8", padding: "12px 0" }}>
+                Loading bills from cloud...
+              </p>
+            ) : pendingBills.length === 0 ? (
               <p style={{ color: "#94a3b8", padding: "12px 0" }}>
                 All caught up! No pending bills waiting.
               </p>
@@ -257,7 +299,11 @@ function ManagerDashboard() {
               </div>
             </div>
 
-            {requests.length === 0 ? (
+            {loading ? (
+              <p style={{ color: "#94a3b8", padding: "12px 0" }}>
+                Loading requests...
+              </p>
+            ) : requests.length === 0 ? (
               <p style={{ color: "#94a3b8", padding: "12px 0" }}>
                 No pending registration requests.
               </p>
@@ -290,7 +336,6 @@ function ManagerDashboard() {
           </section>
         </div>
 
-        {/* Row 3: Spending Breakdown */}
         <section className="mgr-usage-section">
           <div className="mgr-panel-header">
             <div>
@@ -357,7 +402,6 @@ function ManagerDashboard() {
           </div>
         </section>
 
-        {/* Row 4: Approved & Rejected Bills History */}
         <section className="mgr-panel">
           <div className="mgr-panel-header">
             <div>
@@ -437,7 +481,6 @@ function ManagerDashboard() {
         </section>
       </main>
 
-      {/* POPUP 1: View Bill Photo + All Bill Details */}
       {viewBill && (
         <div className="mgr-modal-overlay">
           <div className="mgr-modal">
@@ -506,7 +549,6 @@ function ManagerDashboard() {
         </div>
       )}
 
-      {/* POPUP 2: Reject Bill Reason */}
       {rejectBill && (
         <div className="mgr-modal-overlay">
           <form className="mgr-modal" onSubmit={handleConfirmReject}>

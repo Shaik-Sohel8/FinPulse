@@ -9,40 +9,52 @@ function RegisterPage() {
   const [role, setRole] = useState("employee");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setLoading(true);
 
-    const cleanUsername = username.trim().toLowerCase();
-    const users = getUsers();
-    const requests = getRequests();
+    try {
+      const cleanUsername = username.trim().toLowerCase();
+      const users = await getUsers();
+      const requests = await getRequests();
 
-    const existsInUsers = users.some((u) => u.username === cleanUsername);
-    const existsInRequests = requests.some((r) => r.username === cleanUsername);
+      const existsInUsers = users.some(
+        (u) => u.username.toLowerCase() === cleanUsername
+      );
+      const existsInRequests = requests.some(
+        (r) => r.username.toLowerCase() === cleanUsername
+      );
 
-    if (existsInUsers || existsInRequests) {
-      setError("Username already exists or is pending approval.");
-      return;
+      if (existsInUsers || existsInRequests) {
+        setError("Username already exists or is pending approval.");
+        setLoading(false);
+        return;
+      }
+
+      const newRequest = {
+        id: Date.now(),
+        fullName: fullName.trim(),
+        username: cleanUsername,
+        password: password,
+        role: role,
+      };
+
+      await saveRequests([...requests, newRequest]);
+      setSuccess("Request sent! Wait for a Manager to approve your account.");
+
+      setFullName("");
+      setUsername("");
+      setPassword("");
+      setRole("employee");
+    } catch {
+      setError("Failed to send request. Check your JSONBin settings.");
+    } finally {
+      setLoading(false);
     }
-
-    const newRequest = {
-      id: Date.now(),
-      fullName: fullName.trim(),
-      username: cleanUsername,
-      password: password,
-      role: role,
-    };
-
-    saveRequests([...requests, newRequest]);
-    setSuccess("Request sent! Wait for a Manager to approve your account.");
-
-    // Reset form fields
-    setFullName("");
-    setUsername("");
-    setPassword("");
-    setRole("employee");
   }
 
   return (
@@ -59,37 +71,34 @@ function RegisterPage() {
           {success && <p className="success-msg">{success}</p>}
 
           <div className="form-group">
-            <label htmlFor="name">Full Name</label>
+            <label>Full Name</label>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Enter your full name"
-              id="name"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="user">Username</label>
+            <label>Username</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Choose a username"
-              id="user"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label>Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Create a password"
-              id="password"
               required
             />
           </div>
@@ -103,8 +112,12 @@ function RegisterPage() {
             </select>
           </div>
 
-          <button type="submit" className="btn btn-primary full-width">
-            Submit Registration
+          <button
+            type="submit"
+            className="btn btn-primary full-width"
+            disabled={loading}
+          >
+            {loading ? "Submitting..." : "Submit Registration"}
           </button>
 
           <p className="switch-link">

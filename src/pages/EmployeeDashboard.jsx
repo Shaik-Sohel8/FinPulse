@@ -19,7 +19,6 @@ const STANDARD_REASONS = [
   "Software / Tools",
 ];
 
-// Helper: gets today's local date in YYYY-MM-DD format
 function getTodayDate() {
   const now = new Date();
   const year = now.getFullYear();
@@ -32,18 +31,14 @@ function EmployeeDashboard() {
   const navigate = useNavigate();
   const today = getTodayDate();
 
-  // Load logged-in employee
   const [user] = useState(() => {
     const session = getSession();
     return session && session.role === "employee" ? session : null;
   });
 
-  // Load only this employee's bills
-  const [bills, setBills] = useState(() => {
-    const session = getSession();
-    if (!session || session.role !== "employee") return [];
-    return getExpenses().filter((item) => item.employeeId === session.id);
-  });
+  const [bills, setBills] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   // Filter states
   const [timeFilter, setTimeFilter] = useState("all");
@@ -53,7 +48,7 @@ function EmployeeDashboard() {
 
   // Modal & Form states
   const [showModal, setShowModal] = useState(false);
-  const [editingId, setEditingId] = useState(null); // null = new bill, number = editing bill
+  const [editingId, setEditingId] = useState(null);
   const [merchant, setMerchant] = useState("");
   const [reason, setReason] = useState("Meals");
   const [customReason, setCustomReason] = useState("");
@@ -64,18 +59,45 @@ function EmployeeDashboard() {
   const [isResizing, setIsResizing] = useState(false);
   const [formError, setFormError] = useState("");
 
+  // Load this employee's bills from JSONBin on page open
   useEffect(() => {
     if (!user) {
       navigate("/login", { replace: true });
+      return;
     }
+
+    let ignore = false;
+    getExpenses()
+      .then((allExpenses) => {
+        if (!ignore) {
+          setBills(allExpenses.filter((item) => item.employeeId === user.id));
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!ignore) setLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
   }, [user, navigate]);
+
+  async function handleRefresh() {
+    setLoading(true);
+    try {
+      const allExpenses = await getExpenses();
+      setBills(allExpenses.filter((item) => item.employeeId === user.id));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   function handleLogout() {
     clearSession();
     navigate("/", { replace: true });
   }
 
-  // Open popup to ADD a new claim
   function openAddModal() {
     setEditingId(null);
     setMerchant("");
@@ -89,7 +111,6 @@ function EmployeeDashboard() {
     setShowModal(true);
   }
 
-  // Open popup to EDIT a Pending or Rejected claim (pre-fills existing details)
   function openEditModal(bill) {
     setEditingId(bill.id);
     setMerchant(bill.merchant);
@@ -117,12 +138,11 @@ function EmployeeDashboard() {
     setIsResizing(false);
   }
 
-  // Read and resize the receipt photo using FileReader + <canvas>
+  // Resize photo with FileReader + <canvas> (kept compact for JSONBin's 100 KB limit)
   function handleFileChange(e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    // 1. Check that it is an image
     if (!file.type.startsWith("image/")) {
       setFormError("Invalid file. Please re-pick a JPG or PNG image.");
       setReceipt("");
@@ -130,7 +150,6 @@ function EmployeeDashboard() {
       return;
     }
 
-    // 2. Check max 1 MB input size
     if (file.size > 1024 * 1024) {
       setFormError("Receipt must be under 1 MB. Please re-pick a smaller image.");
       setReceipt("");
@@ -141,14 +160,12 @@ function EmployeeDashboard() {
     setFormError("");
     setIsResizing(true);
 
-    // 3. Read file with FileReader
     const reader = new FileReader();
 
     reader.onerror = () => {
       setIsResizing(false);
       setReceipt("");
       e.target.value = "";
-      // Notice: we do NOT clear merchant, date, amount, or purpose
       setFormError("Image failed to load. Your details are safe—please re-pick the image.");
     };
 
@@ -163,8 +180,7 @@ function EmployeeDashboard() {
       };
 
       img.onload = () => {
-        // 4. Resize to max 800px wide (keep same aspect ratio)
-        const MAX_WIDTH = 800;
+        const MAX_WIDTH = 400;
         let width = img.width;
         let height = img.height;
 
@@ -173,17 +189,16 @@ function EmployeeDashboard() {
           width = MAX_WIDTH;
         }
 
-        // 5. Draw onto <canvas> and export as JPEG quality 0.6
         const canvas = document.createElement("canvas");
         canvas.width = width;
         canvas.height = height;
 
         const ctx = canvas.getContext("2d");
-        ctx.fillStyle = "#ffffff"; // prevents black background on transparent PNGs
+        ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
 
-        const smallJpeg = canvas.toDataURL("image/jpeg", 0.6);
+        const smallJpeg = canvas.toDataURL("image/jpeg", 0.45);
         setReceipt(smallJpeg);
         setIsResizing(false);
       };
@@ -194,14 +209,12 @@ function EmployeeDashboard() {
     reader.readAsDataURL(file);
   }
 
-  // Budget calculations
   const approvedAmount = bills
     .filter((bill) => bill.status === "approved")
     .reduce((sum, bill) => sum + Number(bill.amount), 0);
 
   const remainingAmount = Math.max(0, LIMIT_AMOUNT - approvedAmount);
 
-  // Filter bills by time and status
   const filteredBills = bills.filter((bill) => {
     const matchesStatus =
       statusFilter === "all" || bill.status === statusFilter;
@@ -216,8 +229,7 @@ function EmployeeDashboard() {
     return matchesStatus && matchesTime;
   });
 
-  // Submit a NEW claim OR save an EDITED claim
-  function handleSaveClaim(e) {
+  async function handleSaveClaim(e) {
     e.preventDefault();
     setFormError("");
 
@@ -226,7 +238,6 @@ function EmployeeDashboard() {
       return;
     }
 
-    // Block future dates
     if (date > today) {
       setFormError("Future dates are not allowed. Please pick today or an earlier date.");
       return;
@@ -256,11 +267,13 @@ function EmployeeDashboard() {
       return;
     }
 
-    const allExpenses = getExpenses();
+    setSaving(true);
 
     try {
+      // Always fetch the latest bills from JSONBin first so we don't overwrite other employees
+      const allExpenses = await getExpenses();
+
       if (editingId !== null) {
-        // EDIT MODE: update the existing bill and resubmit as Pending
         const updatedAll = allExpenses.map((bill) =>
           bill.id === editingId
             ? {
@@ -271,16 +284,15 @@ function EmployeeDashboard() {
                 amount: numAmount,
                 purpose: purpose.trim(),
                 receipt: receipt,
-                status: "pending", // resets Rejected -> Pending on resubmit
+                status: "pending",
                 rejectReason: "",
               }
             : bill
         );
 
-        saveExpenses(updatedAll);
+        await saveExpenses(updatedAll);
         setBills(updatedAll.filter((item) => item.employeeId === user.id));
       } else {
-        // NEW CLAIM MODE: put the newly submitted claim at the TOP of the list
         const newBill = {
           id: Date.now(),
           employeeId: user.id,
@@ -296,13 +308,16 @@ function EmployeeDashboard() {
           rejectReason: "",
         };
 
-        saveExpenses([newBill, ...allExpenses]);
-        setBills([newBill, ...bills]);
+        const updatedAll = [newBill, ...allExpenses];
+        await saveExpenses(updatedAll);
+        setBills(updatedAll.filter((item) => item.employeeId === user.id));
       }
 
       closeModal();
     } catch {
-      setFormError("Storage is full! Try a smaller image or clear old demo data.");
+      setFormError("Could not save to cloud. JSONBin free 100 KB limit may be full.");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -312,9 +327,14 @@ function EmployeeDashboard() {
     <div>
       <header className="header">
         <div className="brand">FinPulse</div>
-        <button className="btn btn-secondary" onClick={handleLogout}>
-          Logout
-        </button>
+        <div className="btn-group">
+          <button className="btn btn-secondary" onClick={handleRefresh}>
+            {loading ? "Syncing..." : "Refresh"}
+          </button>
+          <button className="btn btn-secondary" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
       </header>
 
       <main className="dashboard-container">
@@ -323,7 +343,6 @@ function EmployeeDashboard() {
           <p>@{user.username} • Employee Expense Dashboard</p>
         </div>
 
-        {/* Limit, Used (Approved), and Remaining Cards */}
         <div className="emp-stats-grid">
           <div className="emp-stat-card">
             <div className="emp-stat-label">Expense Limit</div>
@@ -347,7 +366,6 @@ function EmployeeDashboard() {
           </div>
         </div>
 
-        {/* Bills List Card */}
         <div className="card">
           <div className="emp-filter-bar">
             <div className="emp-filters">
@@ -395,8 +413,11 @@ function EmployeeDashboard() {
             </div>
           </div>
 
-          {/* Horizontal Bills List */}
-          {filteredBills.length === 0 ? (
+          {loading ? (
+            <p style={{ color: "#94a3b8", padding: "16px 0" }}>
+              Loading bills from cloud...
+            </p>
+          ) : filteredBills.length === 0 ? (
             <p style={{ color: "#94a3b8", padding: "16px 0" }}>
               No bills found for the selected filter.
             </p>
@@ -442,12 +463,10 @@ function EmployeeDashboard() {
                     ${Number(bill.amount).toFixed(2)}
                   </div>
 
-                  {/* Yellow Pending, Green Approved, Red Rejected */}
                   <span className={`status-badge status-${bill.status}`}>
                     {bill.status}
                   </span>
 
-                  {/* Show Edit button ONLY on Pending or Rejected bills */}
                   {(bill.status === "pending" || bill.status === "rejected") && (
                     <button
                       className="btn-edit"
@@ -462,7 +481,6 @@ function EmployeeDashboard() {
           )}
         </div>
 
-        {/* Bottom Button */}
         <div className="emp-add-bar">
           <button className="btn btn-primary" onClick={openAddModal}>
             + Add Expense Claim
@@ -470,7 +488,6 @@ function EmployeeDashboard() {
         </div>
       </main>
 
-      {/* Add / Edit Expense Claim Popup */}
       {showModal && (
         <div className="emp-modal-overlay">
           <form className="emp-modal" onSubmit={handleSaveClaim}>
@@ -553,9 +570,7 @@ function EmployeeDashboard() {
             </div>
 
             <div className="form-group">
-              <label>
-                Upload Receipt (JPG/PNG, max 1 MB — auto-resized to 800px)
-              </label>
+              <label>Upload Receipt (JPG/PNG, max 1 MB)</label>
               <input
                 type="file"
                 accept="image/jpeg,image/png"
@@ -582,15 +597,20 @@ function EmployeeDashboard() {
                 type="button"
                 className="btn btn-secondary"
                 onClick={closeModal}
+                disabled={saving}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={isResizing}
+                disabled={isResizing || saving}
               >
-                {editingId !== null ? "Resubmit Claim" : "Submit Claim"}
+                {saving
+                  ? "Saving..."
+                  : editingId !== null
+                  ? "Resubmit Claim"
+                  : "Submit Claim"}
               </button>
             </div>
           </form>

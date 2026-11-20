@@ -6,39 +6,51 @@ function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    const cleanUsername = username.trim().toLowerCase();
-    const users = getUsers();
-    const matchedUser = users.find(
-      (u) => u.username === cleanUsername && u.password === password
-    );
+    try {
+      const cleanUsername = username.trim().toLowerCase();
+      const users = await getUsers();
 
-    if (matchedUser) {
-      saveSession(matchedUser);
+      const matchedUser = users.find(
+        (u) =>
+          u.username.toLowerCase() === cleanUsername &&
+          String(u.password) === password
+      );
 
-      if (matchedUser.role === "employee") {
-        navigate("/employee-dashboard");
-      } else if (matchedUser.role === "manager") {
-        navigate("/manager-dashboard");
-      } else if (matchedUser.role === "auditor") {
-        navigate("/auditor-dashboard");
+      if (matchedUser) {
+        saveSession(matchedUser);
+
+        if (matchedUser.role === "employee") {
+          navigate("/employee-dashboard", { replace: true });
+        } else if (matchedUser.role === "manager") {
+          navigate("/manager-dashboard", { replace: true });
+        } else if (matchedUser.role === "auditor") {
+          navigate("/auditor-dashboard", { replace: true });
+        }
+        return;
       }
-      return;
-    }
 
-    // Check if the user is still waiting for Manager approval
-    const requests = getRequests();
-    const isPending = requests.some((r) => r.username === cleanUsername);
+      const requests = await getRequests();
+      const isPending = requests.some(
+        (r) => r.username.toLowerCase() === cleanUsername
+      );
 
-    if (isPending) {
-      setError("Your registration is still pending Manager approval.");
-    } else {
-      setError("Invalid username or password.");
+      if (isPending) {
+        setError("Your registration is still pending Manager approval.");
+      } else {
+        setError("Invalid username or password.");
+      }
+    } catch {
+      setError("Network error. Check your JSONBin ID and API Key.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -55,31 +67,33 @@ function LoginPage() {
           {error && <p className="error-msg">{error}</p>}
 
           <div className="form-group">
-            <label htmlFor="user">Username</label>
+            <label>Username</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter username"
-              id="user"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label>Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter password"
-              id="password"
               required
             />
           </div>
 
-          <button type="submit" className="btn btn-primary full-width">
-            Login
+          <button
+            type="submit"
+            className="btn btn-primary full-width"
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Login"}
           </button>
 
           <p className="switch-link">
