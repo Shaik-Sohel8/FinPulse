@@ -1,0 +1,456 @@
+/* Full-width dashboard layout */
+.aud-container {
+  width: 100%;
+  max-width: 1440px;
+  margin: 24px auto;
+  padding: 0 28px 40px;
+}
+
+.aud-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.aud-header-row h2 {
+  font-size: 26px;
+}
+
+.aud-header-row p {
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.aud-readonly-tag {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background-color: #1e293b;
+  border: 1px solid #38bdf8;
+  color: #38bdf8;
+}
+
+/* Section Labels */
+.aud-section-title {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+/* Responsive Summary Cards:
+   Laptop (>= 992px): 4 per row
+   Tablet (576px - 991px): 3 per row
+   Phone (< 576px): 2 per row */
+.aud-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.aud-summary-card {
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.aud-card-label {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.aud-card-amount {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.aud-card-count {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.aud-total {
+  color: #38bdf8;
+}
+
+.aud-approved {
+  color: #4ade80;
+}
+
+.aud-pending {
+  color: #facc15;
+}
+
+.aud-rejected {
+  color: #f87171;
+}
+
+/* Main Ledger Panel */
+.aud-panel {
+  background-color: #1e293b;
+  border-radius: 12px;
+  padding: 22px 24px;
+}
+
+/* Filters Bar */
+.aud-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.aud-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex: 1;
+}
+
+.aud-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.aud-filter-field label {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.aud-filters input,
+.aud-filters select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  background-color: #0f172a;
+  color: #f8fafc;
+  font-size: 14px;
+}
+
+.aud-filter-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-export {
+  background-color: #0b5ed7;
+  color: #ffffff;
+  padding: 9px 16px;
+}
+
+.btn-export:hover {
+  background-color: #094db1;
+}
+
+/* Horizontal Scroll Wrapper for Table on Phones */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.aud-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.aud-table th {
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  padding: 12px;
+  border-bottom: 1px solid #334155;
+  white-space: nowrap;
+}
+
+.aud-table td {
+  padding: 13px 12px;
+  border-bottom: 1px solid #334155;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.aud-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.aud-row:hover {
+  background-color: #0f172a;
+}
+
+.aud-amount-cell {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.aud-user-sub {
+  font-size: 12px;
+  color: #38bdf8;
+}
+
+.aud-no-receipt {
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.aud-receipt-mini {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #475569;
+  display: block;
+}
+
+/* Status Badges */
+.aud-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.aud-badge-pending {
+  background-color: #fff3cd;
+  color: #664d03;
+}
+
+.aud-badge-approved {
+  background-color: #d1e7dd;
+  color: #146c43;
+}
+
+.aud-badge-rejected {
+  background-color: #f8d7da;
+  color: #b02a37;
+}
+
+/* Pagination Bar (Partial State) */
+.aud-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #334155;
+  font-size: 14px;
+  color: #cbd5e1;
+}
+
+.aud-page-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.aud-page-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  background-color: #0f172a;
+  color: #f8fafc;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.aud-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Empty State */
+.aud-empty {
+  text-align: center;
+  padding: 36px 16px;
+  color: #94a3b8;
+}
+
+/* Expense Detail Modal (S4) */
+.aud-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.78);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  z-index: 1000;
+}
+
+.aud-modal {
+  background-color: #1e293b;
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.aud-modal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.aud-receipt-box {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.aud-receipt-img {
+  width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  background-color: #0f172a;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  cursor: zoom-in;
+}
+
+.aud-zoom-hint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 6px;
+}
+
+.aud-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background-color: #0f172a;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.aud-detail-full {
+  grid-column: span 2;
+}
+
+.aud-detail-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+/* Audit Trail Timeline */
+.aud-timeline {
+  background-color: #0f172a;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.aud-timeline h4 {
+  font-size: 13px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 10px;
+}
+
+.aud-timeline-step {
+  font-size: 14px;
+  padding: 6px 0;
+  border-left: 2px solid #38bdf8;
+  padding-left: 12px;
+  margin-bottom: 6px;
+}
+
+.aud-reject-box {
+  background-color: rgba(176, 42, 55, 0.2);
+  border: 1px solid #b02a37;
+  color: #fca5a5;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+/* Fullscreen Enlarged Receipt Lightbox */
+.aud-lightbox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.92);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 1100;
+  cursor: zoom-out;
+}
+
+.aud-lightbox img {
+  max-width: 95%;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* Tablet Breakpoint (576px to 991px): 3 cards per row */
+@media (max-width: 991px) {
+  .aud-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Phone Breakpoint (< 576px): 2 cards per row */
+@media (max-width: 575px) {
+  .aud-container {
+    padding: 0 14px 32px;
+  }
+
+  .aud-panel {
+    padding: 16px;
+  }
+
+  .aud-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .aud-card-amount {
+    font-size: 18px;
+  }
+
+  .aud-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .aud-detail-full {
+    grid-column: span 1;
+  }
+}

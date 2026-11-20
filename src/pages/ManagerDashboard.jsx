@@ -163,12 +163,20 @@ function ManagerDashboard() {
   }
 
   // --- CALCULATIONS ---
-  const pendingBills = expenses.filter((b) => b.status === "pending");
+// Pending bills: sorted OLDEST date first (as required by your PRD)
+  const pendingBills = expenses
+    .filter((b) => b.status === "pending")
+    .sort((a, b) => a.date.localeCompare(b.date));
+
   const approvedBills = expenses.filter((b) => b.status === "approved");
-  const historyBills = expenses.filter((b) => {
+
+// Reviewed history bills: sorted NEWEST date first
+  const historyBills = expenses
+  .filter((b) => {
     if (historyFilter === "all") return b.status !== "pending";
     return b.status === historyFilter;
-  });
+  })
+  .sort((a, b) => b.date.localeCompare(a.date));
 
   const givenAmount = approvedBills.reduce(
     (sum, bill) => sum + Number(bill.amount),

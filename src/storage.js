@@ -1,5 +1,5 @@
 // Paste your JSONBin details here
-const BIN_ID = "https://api.jsonbin.io/v3/b/6b008f03ac6210605a9813c3";
+const BIN_ID = "6b008f03ac6210605a9813c3";
 const API_KEY = "$2a$10$QQ5FopAWkU0wYOGQQwrgxumAXtMA.SiN.TW3ldOXIR0lelnN0A1bK";
 
 const BASE_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
