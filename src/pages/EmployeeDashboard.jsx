@@ -10,14 +10,35 @@ import "./EmployeeDashboard.css";
 
 const LIMIT_AMOUNT = 1000;
 
+const STANDARD_REASONS = [
+  "Meals",
+  "Travel",
+  "Hotel / Stay",
+  "Office Supplies",
+  "Client Meeting",
+  "Software / Tools",
+];
+
+// Helper: gets today's local date in YYYY-MM-DD format
+function getTodayDate() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function EmployeeDashboard() {
   const navigate = useNavigate();
+  const today = getTodayDate();
 
+  // Load logged-in employee
   const [user] = useState(() => {
     const session = getSession();
     return session && session.role === "employee" ? session : null;
   });
 
+  // Load only this employee's bills
   const [bills, setBills] = useState(() => {
     const session = getSession();
     if (!session || session.role !== "employee") return [];
@@ -26,23 +47,21 @@ function EmployeeDashboard() {
 
   // Filter states
   const [timeFilter, setTimeFilter] = useState("all");
-  const [selectedMonth, setSelectedMonth] = useState(
-    new Date().toISOString().slice(0, 7)
-  );
-  const [selectedYear, setSelectedYear] = useState(
-    String(new Date().getFullYear())
-  );
+  const [selectedMonth, setSelectedMonth] = useState(today.slice(0, 7));
+  const [selectedYear, setSelectedYear] = useState(today.slice(0, 4));
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // Popup modal states
+  // Modal & Form states
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null); // null = new bill, number = editing bill
   const [merchant, setMerchant] = useState("");
   const [reason, setReason] = useState("Meals");
   const [customReason, setCustomReason] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(today);
   const [amount, setAmount] = useState("");
   const [purpose, setPurpose] = useState("");
   const [receipt, setReceipt] = useState("");
+  const [isResizing, setIsResizing] = useState(false);
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
@@ -56,32 +75,133 @@ function EmployeeDashboard() {
     navigate("/", { replace: true });
   }
 
+  // Open popup to ADD a new claim
+  function openAddModal() {
+    setEditingId(null);
+    setMerchant("");
+    setReason("Meals");
+    setCustomReason("");
+    setDate(today);
+    setAmount("");
+    setPurpose("");
+    setReceipt("");
+    setFormError("");
+    setShowModal(true);
+  }
+
+  // Open popup to EDIT a Pending or Rejected claim (pre-fills existing details)
+  function openEditModal(bill) {
+    setEditingId(bill.id);
+    setMerchant(bill.merchant);
+
+    if (STANDARD_REASONS.includes(bill.reason)) {
+      setReason(bill.reason);
+      setCustomReason("");
+    } else {
+      setReason("Other");
+      setCustomReason(bill.reason);
+    }
+
+    setDate(bill.date);
+    setAmount(String(bill.amount));
+    setPurpose(bill.purpose);
+    setReceipt(bill.receipt || "");
+    setFormError("");
+    setShowModal(true);
+  }
+
+  function closeModal() {
+    setShowModal(false);
+    setEditingId(null);
+    setFormError("");
+    setIsResizing(false);
+  }
+
+  // Read and resize the receipt photo using FileReader + <canvas>
   function handleFileChange(e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (file.size > 1024 * 1024) {
-      setFormError("Receipt file must be under 1 MB.");
+    // 1. Check that it is an image
+    if (!file.type.startsWith("image/")) {
+      setFormError("Invalid file. Please re-pick a JPG or PNG image.");
       setReceipt("");
+      e.target.value = "";
+      return;
+    }
+
+    // 2. Check max 1 MB input size
+    if (file.size > 1024 * 1024) {
+      setFormError("Receipt must be under 1 MB. Please re-pick a smaller image.");
+      setReceipt("");
+      e.target.value = "";
       return;
     }
 
     setFormError("");
+    setIsResizing(true);
+
+    // 3. Read file with FileReader
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setReceipt(reader.result);
+
+    reader.onerror = () => {
+      setIsResizing(false);
+      setReceipt("");
+      e.target.value = "";
+      // Notice: we do NOT clear merchant, date, amount, or purpose
+      setFormError("Image failed to load. Your details are safe—please re-pick the image.");
     };
+
+    reader.onload = () => {
+      const img = new Image();
+
+      img.onerror = () => {
+        setIsResizing(false);
+        setReceipt("");
+        e.target.value = "";
+        setFormError("Image failed to load. Your details are safe—please re-pick the image.");
+      };
+
+      img.onload = () => {
+        // 4. Resize to max 800px wide (keep same aspect ratio)
+        const MAX_WIDTH = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
+
+        // 5. Draw onto <canvas> and export as JPEG quality 0.6
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff"; // prevents black background on transparent PNGs
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const smallJpeg = canvas.toDataURL("image/jpeg", 0.6);
+        setReceipt(smallJpeg);
+        setIsResizing(false);
+      };
+
+      img.src = reader.result;
+    };
+
     reader.readAsDataURL(file);
   }
 
-  // Calculate Used (Approved) and Remaining amounts
+  // Budget calculations
   const approvedAmount = bills
     .filter((bill) => bill.status === "approved")
     .reduce((sum, bill) => sum + Number(bill.amount), 0);
 
   const remainingAmount = Math.max(0, LIMIT_AMOUNT - approvedAmount);
 
-  // Apply Time and Status filters
+  // Filter bills by time and status
   const filteredBills = bills.filter((bill) => {
     const matchesStatus =
       statusFilter === "all" || bill.status === statusFilter;
@@ -96,9 +216,21 @@ function EmployeeDashboard() {
     return matchesStatus && matchesTime;
   });
 
-  function handleAddClaim(e) {
+  // Submit a NEW claim OR save an EDITED claim
+  function handleSaveClaim(e) {
     e.preventDefault();
     setFormError("");
+
+    if (isResizing) {
+      setFormError("Please wait, resizing receipt image...");
+      return;
+    }
+
+    // Block future dates
+    if (date > today) {
+      setFormError("Future dates are not allowed. Please pick today or an earlier date.");
+      return;
+    }
 
     const finalReason = reason === "Other" ? customReason.trim() : reason;
     if (!finalReason) {
@@ -120,38 +252,58 @@ function EmployeeDashboard() {
     }
 
     if (!receipt) {
-      setFormError("Please upload a receipt file.");
+      setFormError("Please upload a receipt image.");
       return;
     }
 
-    const newBill = {
-      id: Date.now(),
-      employeeId: user.id,
-      employeeName: user.fullName,
-      employeeUsername: user.username,
-      merchant: merchant.trim(),
-      reason: finalReason,
-      date: date,
-      amount: numAmount,
-      purpose: purpose.trim(),
-      receipt: receipt,
-      status: "pending",
-      rejectReason: "",
-    };
-
     const allExpenses = getExpenses();
-    saveExpenses([newBill, ...allExpenses]);
-    setBills([newBill, ...bills]);
 
-    // Reset form and close popup
-    setMerchant("");
-    setReason("Meals");
-    setCustomReason("");
-    setDate(new Date().toISOString().slice(0, 10));
-    setAmount("");
-    setPurpose("");
-    setReceipt("");
-    setShowModal(false);
+    try {
+      if (editingId !== null) {
+        // EDIT MODE: update the existing bill and resubmit as Pending
+        const updatedAll = allExpenses.map((bill) =>
+          bill.id === editingId
+            ? {
+                ...bill,
+                merchant: merchant.trim(),
+                reason: finalReason,
+                date: date,
+                amount: numAmount,
+                purpose: purpose.trim(),
+                receipt: receipt,
+                status: "pending", // resets Rejected -> Pending on resubmit
+                rejectReason: "",
+              }
+            : bill
+        );
+
+        saveExpenses(updatedAll);
+        setBills(updatedAll.filter((item) => item.employeeId === user.id));
+      } else {
+        // NEW CLAIM MODE: put the newly submitted claim at the TOP of the list
+        const newBill = {
+          id: Date.now(),
+          employeeId: user.id,
+          employeeName: user.fullName,
+          employeeUsername: user.username,
+          merchant: merchant.trim(),
+          reason: finalReason,
+          date: date,
+          amount: numAmount,
+          purpose: purpose.trim(),
+          receipt: receipt,
+          status: "pending",
+          rejectReason: "",
+        };
+
+        saveExpenses([newBill, ...allExpenses]);
+        setBills([newBill, ...bills]);
+      }
+
+      closeModal();
+    } catch {
+      setFormError("Storage is full! Try a smaller image or clear old demo data.");
+    }
   }
 
   if (!user) return null;
@@ -166,7 +318,6 @@ function EmployeeDashboard() {
       </header>
 
       <main className="dashboard-container">
-        {/* Employee Name */}
         <div className="emp-welcome">
           <h2>{user.fullName}</h2>
           <p>@{user.username} • Employee Expense Dashboard</p>
@@ -290,31 +441,42 @@ function EmployeeDashboard() {
                   <div className="emp-bill-amount">
                     ${Number(bill.amount).toFixed(2)}
                   </div>
+
+                  {/* Yellow Pending, Green Approved, Red Rejected */}
                   <span className={`status-badge status-${bill.status}`}>
                     {bill.status}
                   </span>
+
+                  {/* Show Edit button ONLY on Pending or Rejected bills */}
+                  {(bill.status === "pending" || bill.status === "rejected") && (
+                    <button
+                      className="btn-edit"
+                      onClick={() => openEditModal(bill)}
+                    >
+                      {bill.status === "rejected" ? "Edit & Resubmit" : "Edit"}
+                    </button>
+                  )}
                 </div>
               </div>
             ))
           )}
         </div>
 
-        {/* Bottom Button to Open Popup */}
+        {/* Bottom Button */}
         <div className="emp-add-bar">
-          <button
-            className="btn btn-primary"
-            onClick={() => setShowModal(true)}
-          >
+          <button className="btn btn-primary" onClick={openAddModal}>
             + Add Expense Claim
           </button>
         </div>
       </main>
 
-      {/* Add Expense Claim Popup Modal */}
+      {/* Add / Edit Expense Claim Popup */}
       {showModal && (
         <div className="emp-modal-overlay">
-          <form className="emp-modal" onSubmit={handleAddClaim}>
-            <h3>Add Expense Claim</h3>
+          <form className="emp-modal" onSubmit={handleSaveClaim}>
+            <h3>
+              {editingId !== null ? "Edit & Resubmit Claim" : "Add Expense Claim"}
+            </h3>
 
             {formError && <p className="error-msg">{formError}</p>}
 
@@ -335,12 +497,11 @@ function EmployeeDashboard() {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
               >
-                <option value="Meals">Meals</option>
-                <option value="Travel">Travel</option>
-                <option value="Hotel / Stay">Hotel / Stay</option>
-                <option value="Office Supplies">Office Supplies</option>
-                <option value="Client Meeting">Client Meeting</option>
-                <option value="Software / Tools">Software / Tools</option>
+                {STANDARD_REASONS.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
                 <option value="Other">Other</option>
               </select>
             </div>
@@ -359,9 +520,10 @@ function EmployeeDashboard() {
             )}
 
             <div className="form-group">
-              <label>Date</label>
+              <label>Date (No future dates)</label>
               <input
                 type="date"
+                max={today}
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
@@ -391,29 +553,44 @@ function EmployeeDashboard() {
             </div>
 
             <div className="form-group">
-              <label>Upload Receipt (Image, max 1 MB)</label>
+              <label>
+                Upload Receipt (JPG/PNG, max 1 MB — auto-resized to 800px)
+              </label>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png"
                 onChange={handleFileChange}
-                required
               />
+
+              {isResizing && (
+                <p style={{ fontSize: "13px", color: "#38bdf8", marginTop: "6px" }}>
+                  Resizing image...
+                </p>
+              )}
+
+              {receipt && !isResizing && (
+                <img
+                  src={receipt}
+                  alt="Receipt preview"
+                  className="emp-preview-img"
+                />
+              )}
             </div>
 
             <div className="emp-modal-actions">
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() => {
-                  setShowModal(false);
-                  setFormError("");
-                  setCustomReason("");
-                }}
+                onClick={closeModal}
               >
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary">
-                Submit Claim
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={isResizing}
+              >
+                {editingId !== null ? "Resubmit Claim" : "Submit Claim"}
               </button>
             </div>
           </form>
