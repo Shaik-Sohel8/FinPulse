@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import "./LandingPage.css";
 
 function LandingPage() {
   const navigate = useNavigate();
@@ -10,7 +11,13 @@ function LandingPage() {
       </header>
 
       <main className="hero">
-        <h1>Welcome to FinPulse</h1>
+        <h1>
+          Welcome to F
+          <span className="spark-i">
+            ı<span className="spark-dot"></span>
+          </span>
+          nPulse
+        </h1>
         <p>Manage your finance with FinPulse</p>
 
         <div className="btn-group">

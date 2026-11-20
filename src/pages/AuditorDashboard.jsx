@@ -244,7 +244,7 @@ function AuditorDashboard() {
             <h2>{user.fullName}</h2>
             <p>@{user.username} • Auditor Ledger & Summary</p>
           </div>
-          <span className="aud-readonly-tag">Read-Only Mode</span>
+          {/* <span className="aud-readonly-tag">Read-Only Mode</span> */}
         </div>
 
         {/* Status Summary Cards (4/row laptop, 3/row tablet, 2/row phone) */}

@@ -8,7 +8,7 @@
 
 .aud-header-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
@@ -96,10 +96,12 @@
 }
 
 /* Main Ledger Panel */
+/* Main Ledger Panel */
 .aud-panel {
   background-color: #1e293b;
   border-radius: 12px;
   padding: 22px 24px;
+  text-align: left;
 }
 
 /* Filters Bar */
@@ -169,21 +171,28 @@
   min-width: 720px;
 }
 
-.aud-table th {
+.aud-table th,
+.aud-table td {
   text-align: left;
+  padding: 13px 14px;
+  border-bottom: 1px solid #334155;
+  vertical-align: middle;
+}
+
+.aud-table th {
   font-size: 12px;
   text-transform: uppercase;
   color: #94a3b8;
-  padding: 12px;
-  border-bottom: 1px solid #334155;
   white-space: nowrap;
 }
 
 .aud-table td {
-  padding: 13px 12px;
-  border-bottom: 1px solid #334155;
   font-size: 14px;
-  vertical-align: middle;
+}
+
+/* Removes the extra double line above the pagination bar */
+.aud-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .aud-row {
