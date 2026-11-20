@@ -4,20 +4,21 @@ import { getSession, clearSession } from "../storage";
 
 function AuditorDashboard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+
+  const [user] = useState(() => {
+    const session = getSession();
+    return session && session.role === "auditor" ? session : null;
+  });
 
   useEffect(() => {
-    const session = getSession();
-    if (!session || session.role !== "auditor") {
-      navigate("/login");
-      return;
+    if (!user) {
+      navigate("/login", { replace: true });
     }
-    setUser(session);
-  }, [navigate]);
+  }, [user, navigate]);
 
   function handleLogout() {
     clearSession();
-    navigate("/");
+    navigate("/", { replace: true });
   }
 
   if (!user) return null;

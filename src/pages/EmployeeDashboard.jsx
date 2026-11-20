@@ -12,8 +12,17 @@ const LIMIT_AMOUNT = 1000;
 
 function EmployeeDashboard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [bills, setBills] = useState([]);
+
+  const [user] = useState(() => {
+    const session = getSession();
+    return session && session.role === "employee" ? session : null;
+  });
+
+  const [bills, setBills] = useState(() => {
+    const session = getSession();
+    if (!session || session.role !== "employee") return [];
+    return getExpenses().filter((item) => item.employeeId === session.id);
+  });
 
   // Filter states
   const [timeFilter, setTimeFilter] = useState("all");
@@ -37,21 +46,14 @@ function EmployeeDashboard() {
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
-    const session = getSession();
-    if (!session || session.role !== "employee") {
-      navigate("/login");
-      return;
+    if (!user) {
+      navigate("/login", { replace: true });
     }
-    setUser(session);
-
-    const allExpenses = getExpenses();
-    const myBills = allExpenses.filter((item) => item.employeeId === session.id);
-    setBills(myBills);
-  }, [navigate]);
+  }, [user, navigate]);
 
   function handleLogout() {
     clearSession();
-    navigate("/");
+    navigate("/", { replace: true });
   }
 
   function handleFileChange(e) {
@@ -166,7 +168,7 @@ function EmployeeDashboard() {
       <main className="dashboard-container">
         {/* Employee Name */}
         <div className="emp-welcome">
-          <h2>Welcome,  {user.fullName}</h2>
+          <h2>{user.fullName}</h2>
           <p>@{user.username} • Employee Expense Dashboard</p>
         </div>
 
@@ -250,7 +252,6 @@ function EmployeeDashboard() {
           ) : (
             filteredBills.map((bill) => (
               <div key={bill.id} className="emp-bill-item">
-                {/* Column 1: Receipt Thumbnail */}
                 <div>
                   {bill.receipt && (
                     <img
@@ -261,7 +262,6 @@ function EmployeeDashboard() {
                   )}
                 </div>
 
-                {/* Column 2: Merchant & Username */}
                 <div>
                   <div className="emp-col-label">Merchant & User</div>
                   <div className="emp-bill-title">{bill.merchant}</div>
@@ -270,14 +270,12 @@ function EmployeeDashboard() {
                   </div>
                 </div>
 
-                {/* Column 3: Reason & Date */}
                 <div>
                   <div className="emp-col-label">Reason & Date</div>
                   <div className="emp-bill-meta">{bill.reason}</div>
                   <div className="emp-bill-date">{bill.date}</div>
                 </div>
 
-                {/* Column 4: Purpose & Reject Note */}
                 <div>
                   <div className="emp-col-label">Purpose</div>
                   <div className="emp-bill-purpose">{bill.purpose}</div>
@@ -288,7 +286,6 @@ function EmployeeDashboard() {
                   )}
                 </div>
 
-                {/* Column 5: Amount & Status */}
                 <div className="emp-bill-right">
                   <div className="emp-bill-amount">
                     ${Number(bill.amount).toFixed(2)}
@@ -348,7 +345,6 @@ function EmployeeDashboard() {
               </select>
             </div>
 
-            {/* Extra input appears only when "Other" is selected */}
             {reason === "Other" && (
               <div className="form-group">
                 <label>Enter Your Reason</label>
