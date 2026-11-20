@@ -1,0 +1,415 @@
+/* Full-width dashboard container */
+.mgr-container {
+  width: 100%;
+  max-width: 1440px;
+  margin: 24px auto;
+  padding: 0 28px 40px;
+}
+
+.mgr-welcome {
+  margin-bottom: 20px;
+}
+
+.mgr-welcome h2 {
+  font-size: 26px;
+}
+
+.mgr-welcome p {
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+/* Top 3 Company Budget Cards */
+.mgr-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.mgr-stat-card {
+  background-color: #1e293b;
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+.mgr-stat-label {
+  font-size: 14px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.mgr-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.mgr-limit {
+  color: #38bdf8;
+}
+
+.mgr-given {
+  color: #4ade80;
+}
+
+.mgr-remaining {
+  color: #facc15;
+}
+
+/* 2-Column Middle Section (Pending Bills + User Registrations) */
+.mgr-two-col {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+  align-items: start;
+}
+
+.mgr-panel {
+  background-color: #1e293b;
+  border-radius: 12px;
+  padding: 22px 24px;
+}
+
+.mgr-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.mgr-panel-sub {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.mgr-tag {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  background-color: #0f172a;
+}
+
+/* Pending Expense Bill Rows */
+.mgr-bill-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid #334155;
+}
+
+.mgr-bill-row:last-child {
+  border-bottom: none;
+}
+
+.mgr-bill-info {
+  flex: 1;
+}
+
+.mgr-bill-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mgr-bill-meta {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.mgr-bill-user {
+  color: #38bdf8;
+}
+
+.mgr-bill-amount {
+  font-size: 18px;
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.mgr-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-view {
+  background-color: #334155;
+  color: #f8fafc;
+  padding: 8px 12px;
+}
+
+.btn-view:hover {
+  background-color: #475569;
+}
+
+/* Registered User Approval Rows */
+.mgr-user-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #334155;
+}
+
+.mgr-user-row:last-child {
+  border-bottom: none;
+}
+
+/* Spending Breakdown Section */
+.mgr-usage-section {
+  background-color: #1e293b;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.mgr-usage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.mgr-usage-card {
+  background-color: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.mgr-usage-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 10px;
+}
+
+.mgr-usage-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mgr-usage-code {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-left: 8px;
+  font-weight: 400;
+}
+
+.mgr-adjust-group {
+  display: flex;
+  gap: 6px;
+}
+
+.mgr-adjust-btn {
+  background-color: #1e293b;
+  color: #cbd5e1;
+  border: 1px solid #475569;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.mgr-adjust-btn:hover {
+  background-color: #334155;
+}
+
+.mgr-progress-track {
+  width: 100%;
+  height: 8px;
+  background-color: #1e293b;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.mgr-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background-color: #f59e0b;
+  transition: width 0.3s ease;
+}
+
+.mgr-progress-fill.high {
+  background-color: #ef4444;
+}
+
+.mgr-usage-bottom {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+/* Bottom History Section (Approved & Rejected Bills) */
+.mgr-history-filter {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  background-color: #0f172a;
+  color: #f8fafc;
+  font-size: 14px;
+}
+
+.mgr-history-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1.5fr 110px 110px 100px;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid #334155;
+}
+
+.mgr-history-row:last-child {
+  border-bottom: none;
+}
+
+.mgr-col-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.mgr-status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.mgr-status-approved {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.mgr-status-rejected {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.mgr-reject-note {
+  color: #f87171;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* Popup Modals (View Bill & Reject Reason) */
+.mgr-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  z-index: 1000;
+}
+
+.mgr-modal {
+  background-color: #1e293b;
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.mgr-modal h3 {
+  margin-bottom: 14px;
+}
+
+.mgr-receipt-full {
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  background-color: #0f172a;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  margin-bottom: 16px;
+}
+
+.mgr-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background-color: #0f172a;
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.mgr-detail-full {
+  grid-column: span 2;
+}
+
+.mgr-modal textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  background-color: #0f172a;
+  color: #f8fafc;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.mgr-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* Tablet & Mobile Responsive */
+@media (max-width: 960px) {
+  .mgr-two-col,
+  .mgr-usage-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mgr-history-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .mgr-container {
+    padding: 0 16px 32px;
+  }
+
+  .mgr-stats-grid,
+  .mgr-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mgr-detail-full {
+    grid-column: span 1;
+  }
+
+  .mgr-bill-row,
+  .mgr-user-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
