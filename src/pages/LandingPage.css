@@ -12,10 +12,10 @@
 /* Fire-colored spark that becomes the dot of "i" */
 .spark-dot {
   position: absolute;
-  top: 0.18em;
-  left: 50%;
-  width: 0.16em;
-  height: 0.16em;
+  top: 0.22em;
+  left: 58%;
+  width: 0.15em;
+  height: 0.15em;
   margin-left: -0.08em;
   border-radius: 50%;
   opacity: 0;
