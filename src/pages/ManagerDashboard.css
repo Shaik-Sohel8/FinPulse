@@ -413,3 +413,43 @@
     align-items: flex-start;
   }
 }
+
+
+
+
+/* Bottom Employee Usage Summary */
+.mgr-emp-section {
+  margin-top: 24px;
+}
+
+.mgr-emp-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 1.2fr;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid #334155;
+}
+
+.mgr-emp-row:last-child {
+  border-bottom: none;
+}
+
+.mgr-emp-used {
+  color: #4ade80;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.mgr-emp-rem {
+  color: #facc15;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+@media (max-width: 960px) {
+  .mgr-emp-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
