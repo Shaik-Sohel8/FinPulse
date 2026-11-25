@@ -11,6 +11,14 @@
   margin-top: 4px;
 }
 
+.card:hover{
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+  transform: scale(1.03);
+  transition: ease-in-out 0.2s;
+
+}
+
 /* 3 Budget Summary Cards */
 .emp-stats-grid {
   display: grid;
@@ -20,10 +28,21 @@
 }
 
 .emp-stat-card {
-  background-color: #1e293b;
-  border-radius: 12px;
-  padding: 20px;
-}
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65),
+              0 0 30px rgba(56, 189, 248, 0.12);
+  border-radius: 20px;
+  padding: 24px 20px;}
+
+.emp-stat-card:hover{
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+  transform: scale(1.03);
+  transition: ease-in-out 0.2s;
+  }
 
 .emp-stat-label {
   font-size: 14px;
@@ -66,12 +85,20 @@
 
 .emp-filters select,
 .emp-filters input {
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #475569;
-  background-color: #0f172a;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background-color: rgba(2, 6, 23, 0.65);
   color: #f8fafc;
   font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.emp-filters select:focus,
+.emp-filters input:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
 }
 
 .emp-total-count {
@@ -219,9 +246,14 @@
 }
 
 .emp-modal {
-  background-color: #1e293b;
-  border-radius: 12px;
-  padding: 24px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75),
+              0 0 30px rgba(56, 189, 248, 0.12);
+  border-radius: 20px;
+  padding: 28px;
   width: 100%;
   max-width: 460px;
   max-height: 90vh;
@@ -234,14 +266,21 @@
 
 .emp-modal textarea {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 6px;
-  border: 1px solid #475569;
-  background-color: #0f172a;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background-color: rgba(2, 6, 23, 0.65);
   color: #f8fafc;
   font-size: 14px;
   resize: vertical;
   min-height: 75px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.emp-modal textarea:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
 }
 
 .emp-preview-img {

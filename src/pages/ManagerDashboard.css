@@ -28,9 +28,21 @@
 }
 
 .mgr-stat-card {
-  background-color: #1e293b;
-  border-radius: 12px;
-  padding: 20px 24px;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65),
+              0 0 30px rgba(56, 189, 248, 0.12);
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.mgr-stat-card:hover{
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+  transform: scale(1.03);
+  transition: ease-in-out 0.2s;
 }
 
 .mgr-stat-label {
@@ -65,10 +77,23 @@
   align-items: start;
 }
 
+
 .mgr-panel {
-  background-color: #1e293b;
-  border-radius: 12px;
-  padding: 22px 24px;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65),
+  0 0 30px rgba(56, 189, 248, 0.12);
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.mgr-panel:hover{
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+  transform: scale(1.03);
+  transition: ease-in-out 0.2s;
 }
 
 .mgr-panel-header {
@@ -166,10 +191,22 @@
 
 /* Spending Breakdown Section */
 .mgr-usage-section {
-  background-color: #1e293b;
-  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65),
+              0 0 30px rgba(56, 189, 248, 0.12);
+  border-radius: 20px;
   padding: 24px;
   margin-bottom: 24px;
+}
+
+.mgr-usage-section:hover{
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+  transform: scale(1.03);
+  transition: ease-in-out 0.2s;
 }
 
 .mgr-usage-grid {
@@ -180,10 +217,10 @@
 }
 
 .mgr-usage-card {
-  background-color: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 16px 18px;
+  background-color: rgba(2, 6, 23, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 18px;
 }
 
 .mgr-usage-top {
@@ -254,12 +291,19 @@
 
 /* Bottom History Section (Approved & Rejected Bills) */
 .mgr-history-filter {
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #475569;
-  background-color: #0f172a;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background-color: rgba(2, 6, 23, 0.65);
   color: #f8fafc;
   font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mgr-history-filter:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
 }
 
 .mgr-history-row {
@@ -323,9 +367,14 @@
 }
 
 .mgr-modal {
-  background-color: #1e293b;
-  border-radius: 12px;
-  padding: 24px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75),
+              0 0 30px rgba(56, 189, 248, 0.12);
+  border-radius: 20px;
+  padding: 28px;
   width: 100%;
   max-width: 520px;
   max-height: 90vh;
@@ -364,13 +413,20 @@
 .mgr-modal textarea {
   width: 100%;
   min-height: 90px;
-  padding: 10px 12px;
-  border-radius: 6px;
-  border: 1px solid #475569;
-  background-color: #0f172a;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background-color: rgba(2, 6, 23, 0.65);
   color: #f8fafc;
   font-size: 14px;
   resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease; 
+}
+
+.mgr-modal textarea:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
 }
 
 .mgr-modal-actions {
