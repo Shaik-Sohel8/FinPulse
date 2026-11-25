@@ -13,6 +13,7 @@ import {
 import "./ManagerDashboard.css";
 
 const COMPANY_LIMIT = 30000;
+const EMPLOYEE_LIMIT = 1000;
 
 const DEFAULT_ALLOCATIONS = {
   Meals: 5000,
@@ -32,6 +33,7 @@ function ManagerDashboard() {
     return session && session.role === "manager" ? session : null;
   });
 
+  const [users, setUsers] = useState([]);
   const [requests, setRequests] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +46,7 @@ function ManagerDashboard() {
   const [rejectReason, setRejectReason] = useState("");
   const [rejectError, setRejectError] = useState("");
 
-  // Load latest bills & registration requests from JSONBin
+  // Load users, registration requests, and bills from JSONBin
   useEffect(() => {
     if (!user) {
       navigate("/login", { replace: true });
@@ -52,9 +54,10 @@ function ManagerDashboard() {
     }
 
     let ignore = false;
-    Promise.all([getRequests(), getExpenses()])
-      .then(([reqs, exps]) => {
+    Promise.all([getUsers(), getRequests(), getExpenses()])
+      .then(([allUsers, reqs, exps]) => {
         if (!ignore) {
+          setUsers(allUsers);
           setRequests(reqs);
           setExpenses(exps);
           setLoading(false);
@@ -72,7 +75,12 @@ function ManagerDashboard() {
   async function handleRefresh() {
     setLoading(true);
     try {
-      const [reqs, exps] = await Promise.all([getRequests(), getExpenses()]);
+      const [allUsers, reqs, exps] = await Promise.all([
+        getUsers(),
+        getRequests(),
+        getExpenses(),
+      ]);
+      setUsers(allUsers);
       setRequests(reqs);
       setExpenses(exps);
     } finally {
@@ -87,8 +95,10 @@ function ManagerDashboard() {
 
   // --- USER REGISTRATION ACTIONS ---
   async function handleApproveUser(request) {
-    const users = await getUsers();
-    await saveUsers([...users, request]);
+    const latestUsers = await getUsers();
+    const updatedUsers = [...latestUsers, request];
+    await saveUsers(updatedUsers);
+    setUsers(updatedUsers);
 
     const latestRequests = await getRequests();
     const updatedRequests = latestRequests.filter((r) => r.id !== request.id);
@@ -163,20 +173,20 @@ function ManagerDashboard() {
   }
 
   // --- CALCULATIONS ---
-// Pending bills: sorted OLDEST date first (as required by your PRD)
+  // Pending bills: oldest date first
   const pendingBills = expenses
     .filter((b) => b.status === "pending")
     .sort((a, b) => a.date.localeCompare(b.date));
 
   const approvedBills = expenses.filter((b) => b.status === "approved");
 
-// Reviewed history bills: sorted NEWEST date first
+  // Reviewed history: newest date first
   const historyBills = expenses
-  .filter((b) => {
-    if (historyFilter === "all") return b.status !== "pending";
-    return b.status === historyFilter;
-  })
-  .sort((a, b) => b.date.localeCompare(a.date));
+    .filter((b) => {
+      if (historyFilter === "all") return b.status !== "pending";
+      return b.status === historyFilter;
+    })
+    .sort((a, b) => b.date.localeCompare(a.date));
 
   const givenAmount = approvedBills.reduce(
     (sum, bill) => sum + Number(bill.amount),
@@ -190,6 +200,32 @@ function ManagerDashboard() {
       ...approvedBills.map((b) => b.reason),
     ])
   );
+
+  // Calculate how much each employee has used (approved bills)
+  const employeeUsage = users
+    .filter((u) => u.role === "employee")
+    .map((emp) => {
+      const empBills = approvedBills.filter(
+        (bill) => String(bill.employeeId) === String(emp.id)
+      );
+      const usedAmount = empBills.reduce(
+        (sum, bill) => sum + Number(bill.amount),
+        0
+      );
+      const remaining = Math.max(0, EMPLOYEE_LIMIT - usedAmount);
+      const percent = Math.round((usedAmount / EMPLOYEE_LIMIT) * 100);
+
+      return {
+        id: emp.id,
+        fullName: emp.fullName,
+        username: emp.username,
+        usedAmount,
+        remaining,
+        percent,
+        billCount: empBills.length,
+      };
+    })
+    .sort((a, b) => b.usedAmount - a.usedAmount);
 
   if (!user) return null;
 
@@ -213,6 +249,7 @@ function ManagerDashboard() {
           <p>@{user.username} • Manager Dashboard</p>
         </div>
 
+        {/* Company Budget Summary Cards */}
         <div className="mgr-stats-grid">
           <div className="mgr-stat-card">
             <div className="mgr-stat-label">Company Limit for Employees</div>
@@ -236,6 +273,7 @@ function ManagerDashboard() {
           </div>
         </div>
 
+        {/* Row 2: Pending Bills + Registered User Requests */}
         <div className="mgr-two-col">
           <section className="mgr-panel">
             <div className="mgr-panel-header">
@@ -344,6 +382,7 @@ function ManagerDashboard() {
           </section>
         </div>
 
+        {/* Row 3: Spending Breakdown by Category */}
         <section className="mgr-usage-section">
           <div className="mgr-panel-header">
             <div>
@@ -410,6 +449,7 @@ function ManagerDashboard() {
           </div>
         </section>
 
+        {/* Row 4: Approved & Rejected Bills History */}
         <section className="mgr-panel">
           <div className="mgr-panel-header">
             <div>
@@ -487,8 +527,75 @@ function ManagerDashboard() {
             ))
           )}
         </section>
+
+        {/* Row 5 (Bottom): Employee Spending Summary */}
+        <section className="mgr-panel mgr-emp-section">
+          <div className="mgr-panel-header">
+            <div>
+              <h3>Employee Spending Summary ({employeeUsage.length})</h3>
+              <p className="mgr-panel-sub">
+                Total approved amount used by each employee out of their $
+                {EMPLOYEE_LIMIT.toLocaleString("en-US")} limit
+              </p>
+            </div>
+          </div>
+
+          {loading ? (
+            <p style={{ color: "#94a3b8", padding: "12px 0" }}>
+              Loading employees...
+            </p>
+          ) : employeeUsage.length === 0 ? (
+            <p style={{ color: "#94a3b8", padding: "12px 0" }}>
+              No employees found.
+            </p>
+          ) : (
+            employeeUsage.map((emp) => (
+              <div key={emp.id} className="mgr-emp-row">
+                <div>
+                  <div className="mgr-col-label">Employee Name</div>
+                  <div className="mgr-bill-title">{emp.fullName}</div>
+                  <div className="mgr-bill-meta">
+                    <span className="mgr-bill-user">@{emp.username}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mgr-col-label">Approved Bills</div>
+                  <div>{emp.billCount} bills</div>
+                </div>
+
+                <div>
+                  <div className="mgr-col-label">Amount Used</div>
+                  <div className="mgr-emp-used">
+                    ${emp.usedAmount.toFixed(2)}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mgr-col-label">Remaining Limit</div>
+                  <div className="mgr-emp-rem">
+                    ${emp.remaining.toFixed(2)}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mgr-col-label">Limit Used ({emp.percent}%)</div>
+                  <div className="mgr-progress-track">
+                    <div
+                      className={`mgr-progress-fill ${
+                        emp.percent >= 80 ? "high" : ""
+                      }`}
+                      style={{ width: `${Math.min(100, emp.percent)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </section>
       </main>
 
+      {/* POPUP 1: View Bill Photo + All Bill Details */}
       {viewBill && (
         <div className="mgr-modal-overlay">
           <div className="mgr-modal">
@@ -557,6 +664,7 @@ function ManagerDashboard() {
         </div>
       )}
 
+      {/* POPUP 2: Reject Bill Reason */}
       {rejectBill && (
         <div className="mgr-modal-overlay">
           <form className="mgr-modal" onSubmit={handleConfirmReject}>
